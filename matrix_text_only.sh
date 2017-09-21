@@ -1,10 +1,12 @@
 # Matrix Shell Animation: Text Only
+# License: GNU General Public License, version 2 (GPLv2)
 #
 # This script allows users to animate plain text in the terminal window. It provides
 # four styles of text entry and five styles of text deletion (20 total permutations).
 #
 # Author: Tyrell McCurbin
-# Date: September 20, 2017
+# Date created: September 19, 2017
+# Host: https://github.com/tmccurbin
 # Last modified by: Tyrell McCurbin
 # Last modified date: September 21, 2017
 
