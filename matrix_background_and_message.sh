@@ -31,7 +31,7 @@
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation. See descriptions above.
 # Characters
-symbols="katakana"
+symbols="hexadecimal"
 frequency=1
 scroll_speed=0
 # Font 1
@@ -202,7 +202,288 @@ clear
 tput civis
 tput cup 0 0
 
-while true
+for(( x=0; x<15; x++ ))
+do
+  for i in $(eval echo {1..$screenlines})
+  do
+    for i in $(eval echo {1..$screencols})
+    do
+      rand=$(($RANDOM%$divisor))
+      case $rand in
+      0) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
+      1) printf "  " ;;
+      *) printf "\033[2C" ;; # move the cursor two spaces forward
+      esac
+    done
+    printf "\n"
+  done
+  tput cup 0 0
+done
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#                       THIS IS WHERE THE MESSAGE ANIMATION BEGINS
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Return the cursor to normal
+tput cnorm
+
+# Change font
+echo "\033[30m"
+
+text_entry="random"
+text_deletion="overwrite"
+char_pause=0.1
+word_pause=0.18
+after_entry_pause=2
+after_deletion_pause=1
+final_pause=0
+
+# Terminal window parameters
+rows=`tput lines`
+columns=`tput cols`
+middle_line=`expr $rows / 2`
+center_column=`expr $columns / 2`
+
+# Read lines from text
+terminal=`tty`
+exec < lines.txt
+
+# The second condition accounts for files without new lines
+while read line || [ -n "$line" ]
+do
+
+  # Compute line length. 
+  # Subtract 1 for the new line char
+  line_length=`echo $line | wc -c`
+  line_length=`expr $line_length - 1`
+  
+  # Compute cursor positioning
+  home_position=`expr $center_column - $line_length / 2`
+  end_position=`expr $home_position + $line_length`
+
+  case $text_entry in
+  
+  forward)    
+    # Keep track of words for adding spaces
+    word_count=`echo $line | wc -w`
+    current_word=1
+    
+    # Position the cursor
+    tput cup $middle_line $home_position
+    
+    for word in $line
+    do
+      # Print the characters of each word
+      for (( char_index=0; char_index<${#word}; char_index++ ));
+      do
+        echo "${word:$char_index:1}\c"
+        sleep $char_pause
+      done
+
+      # Add a space after all words except the last word
+      if [ $current_word != $word_count ]
+      then
+        echo " \c"
+        current_word=`expr $current_word + 1`
+      fi
+
+      sleep $word_pause
+
+    done # word loop
+    ;; # forward case
+  
+  reverse)
+    # Position the cursor
+    tput cup $middle_line $end_position
+    for (( i=`expr $line_length - 1`; i>=0; i-- ));
+    do
+      sleep $char_pause
+      echo "${line:i:1}\b\b\c"
+    done
+    ;; # reverse case
+    
+  random)
+    # Create an array for positions
+    # Randomly select from the positions array, since characters may be repeated
+    
+    # Populate the positions array
+    for (( i=0; i<$line_length; i++ ))
+    do
+      position_array[$i]=$i
+    done
+    
+    # Randomly select from the position array
+    for (( i=0; i<$line_length; i++ ))
+    do
+    
+      # Divisor needs to be one more than max index
+      divisor=$line_length
+      
+      while true
+      do
+        
+        # Generate a random index between 0 and max index
+        random_index=$(($RANDOM%divisor))
+        
+        # Enter characters that have not already been entered
+        if [ "${position_array[random_index]}" != "" ]
+        then
+          
+          # Move cursor to position
+          new_column=`expr $home_position + $random_index`
+          tput cup $middle_line $new_column
+          
+          # Print character
+          sleep $char_pause
+          echo "${line:$random_index:1}\c"
+          
+          # Remove entry from position array
+          unset position_array[random_index]
+
+          # Break the while loop. Continue with the for loop
+          break
+        fi # Done printing character
+      done # Done generating random indices
+      
+    done # Line printing done
+    
+    # Delete the array
+    unset position_array
+    
+    # Relocate cursor to end of sentence
+    tput cup $middle_line $end_position
+    
+    ;; # random case
+  
+  instant)
+    tput cup $middle_line $home_position
+    echo "$line\c"
+    ;;
+    
+  *)
+    echo "Invalid value for text entry"
+    exit
+    ;;
+    
+  esac # text entry
+  
+  sleep $after_entry_pause # Rest between text entry and deletion
+    
+  case $text_deletion in 
+  
+  forward)
+    # Delete text from left to right
+    tput cup $middle_line $home_position
+    for (( i=0; i<line_length; i++ ))
+    do
+      echo " \c"
+      sleep $char_pause
+    done
+    ;;
+    
+  reverse)
+    # Adjust cursor
+    tput cup $middle_line $end_position
+    
+    # Delete the text from right to left
+    for (( i=0; i<line_length; i++ ))
+    do
+      echo "\b \b\c"
+      sleep $char_pause
+    done
+    ;;
+  
+  random)
+    # Delete the text in random order
+    # Create an array for positions
+    # Randomly select from the positions array, since characters can repeat themselves
+    
+    # Populate the positions array
+    for (( i=0; i<$line_length; i++ ))
+    do
+      position_array[$i]=$i
+      # echo "Position $i is ${position_array[$i]}"
+    done
+    
+    # Randomly select from the position array
+    for (( i=0; i<$line_length; i++ ))
+    do
+    
+      # Divisor needs to be one more than max index
+      divisor=$line_length
+      
+      while true
+      do
+        
+        # Generate a random index between 0 and line_length - 1
+        random_index=$(($RANDOM%divisor))
+        
+        # Enter characters that have not already been entered
+        if [ "${position_array[random_index]}" != "" ]
+        then
+          
+          # Move cursor to position
+          new_column=`expr $home_position + $random_index`
+          tput cup $middle_line $new_column
+          
+          # Delete character by overwriting it with a space
+          sleep $char_pause
+          echo " \c"
+          
+          # Remove entry from position array
+          unset position_array[random_index]
+
+          # Break the while loop. Continue with the for loop
+          break
+        fi # Done printing character
+      done # Done generating random indices
+      
+    done # Line printing done
+    
+    # Delete the array
+    unset position_array
+    ;;
+  
+  overwrite)
+    # Overwrite the previous line of text
+    continue
+    ;;
+    
+  instant)
+    # Delete the text from right to left
+    for (( i=0; i<line_length; i++ ))
+    do
+      echo "\b \b\c"
+    done
+    ;;
+    
+  *)
+    echo "Invalid value for text deletion"
+    exit
+    ;;
+    
+  esac # text deletion
+  
+  sleep $after_deletion_pause
+  
+done # while read line
+
+exec < $terminal
+
+sleep $final_pause
+
+# Font Reset
+echo "\033[0;0m"
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#                       THIS IS WHERE THE FINAL ANIMATION BEGINS
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Hide and position the cursor
+tput civis
+tput cup 0 0
+
+for(( x=0; x<60; x++ ))
 do
   for i in $(eval echo {1..$screenlines})
   do

@@ -1,4 +1,3 @@
-Hello, my name is Tyrell.
 I am a robotics engineer.
 I bring new ideas to life.
 I also write code for web and mobile apps.
