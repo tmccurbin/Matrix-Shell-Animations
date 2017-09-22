@@ -16,9 +16,10 @@
 # Navigate to this directory, in the terminal, and enter 'sh matrix_background_and_message.sh'
 
 # ANIMATION PARAMETER DESCRIPTIONS
-# symbols: type of characters to appear on screen: alphanumeric, hexadecimal, katakana, emoji
+# symbols: type of characters to appear; alphanumeric, numeric, hexadecimal, katakana, or emoji
 # frequency: non-linear chance that a randomly-selected character is replaced; must be an integer between 1 and 100; 1=>1%, 51=>2%, 68=>3%, 76=>4%, 81=>5%, 91=>10%, 96=>20%, 97=>25%, 98=>33.33%, 99=>50%, 100=>100%
 # scroll_speed: enter 0 for static; greater positive integers increase scroll speed
+# ending: the matrix animation will randomly fade or repopulate the screen; "fade" or "repopulate"
 # font_color: choose black, red, green, yellow, blue, magenta, cyan, light_gray, dark_gray, light_red, light_green, light_yellow, light_blue, light_magenta, light_cyan, or white
 # is_bold: make the font bold: "true" or "false"
 # is_dim: decrease the brightness of the text; "true" or "false"
@@ -33,7 +34,9 @@
 # Characters
 symbols="hexadecimal"
 frequency=1
-scroll_speed=0
+intro_scroll_speed=0
+outro_scroll_speed=0
+ending="fade"
 # Font 1
 font_color_1="light_gray"
 background_color_1="default"
@@ -162,15 +165,17 @@ font_2=$font_prefix$color_2$bg_color_2$hidden_2$inverted_2$flashing_2$underline_
 colors=($font_1 $font_2)
 
 # Terminal window parameters
-screenlines=$(expr `tput lines` - 1 + $scroll_speed)
+screenlines=$(expr `tput lines` - 1 + $intro_scroll_speed)
 screencols=$(expr `tput cols` / 2 - 1)
 
 # Characters
 case $symbols in 
 alphanumeric)
   chars=(a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9 ^) ;;
+numeric) 
+  chars=(0 1 2 3 4 5 6 7 8 9) ;;
 hexadecimal)
-  chars=(0 1 2 3 4 5 6 7 8 9 a b c d e f) ;;
+  chars=(0 1 2 3 4 5 6 7 8 9 A B C D E F) ;;
 katakana)
   chars=(ｱ ｲ ｳ ｴ ｵ ｶ ｷ ｸ ｹ ｺ ｻ ｼ ｽ ｾ ｿ ﾀ ﾁ ﾂ ﾃ ﾄ ﾅ ﾆ ﾇ ﾈ ﾉ ﾊ ﾋ ﾌ ﾍ ﾎ ﾏ ﾐ ﾑ ﾒ ﾓ ﾔ ﾕ ﾖ ﾗ ﾘ ﾙ ﾚ ﾛ ﾜ ヰ ヱ ヲ ﾝ) ;;
 emoji)
@@ -211,7 +216,7 @@ do
       rand=$(($RANDOM%$divisor))
       case $rand in
       0) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
-      1) printf "  " ;;
+      1) printf "  " ;; # Maintain some blank space in the animation
       *) printf "\033[2C" ;; # move the cursor two spaces forward
       esac
     done
@@ -310,7 +315,40 @@ do
     done
     ;; # reverse case
     
-  random)
+  outside_in)
+    # Make the cursor invisible
+    tput civis
+    
+    for (( i=0; i<line_length; i++ ))
+    do
+      if [ `expr $i % 2` -eq 0 ] # even iterations
+      then
+        # Calculate index to enter
+        text_index=`expr $i / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep `echo 0.97 \* $char_pause | bc`
+        echo "${line:$text_index:1}\c"
+      else # odd iterations
+        # Calculate index to enter
+        text_index=`expr $line_length - \( $i + 1 \) / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep `echo 0.97 \* $char_pause | bc`
+        echo "${line:$text_index:1}\c"
+      fi
+    done
+    
+    # Position cursor
+    tput cup $middle_line $end_position
+    
+    ;; # outside-in case
+    
+    random)
     # Create an array for positions
     # Randomly select from the positions array, since characters may be repeated
     
@@ -376,7 +414,12 @@ do
   esac # text entry
   
   sleep $after_entry_pause # Rest between text entry and deletion
-    
+  
+  if [ ${text_entry[line_index]} = "outside_in" ]
+  then
+    tput cnorm # make the cursor visible
+  fi
+  
   case ${text_deletion[$line_index]} in 
   
   forward)
@@ -390,7 +433,7 @@ do
     ;;
     
   reverse)
-    # Adjust cursor
+    # Place the cursor at the end of the line
     tput cup $middle_line $end_position
     
     # Delete the text from right to left
@@ -460,6 +503,10 @@ do
     ;;
     
   instant)
+  
+    # Place the cursor at the end of the line
+    tput cup $middle_line $end_position
+    
     # Delete the text from right to left
     for (( i=0; i<line_length; i++ ))
     do
@@ -495,6 +542,9 @@ echo "\033[0;0m"
 tput civis
 tput cup 0 0
 
+# Terminal window parameters
+screenlines=$(expr `tput lines` - 1 + $outro_scroll_speed)
+
 for(( x=0; x<60; x++ ))
 do
   for i in $(eval echo {1..$screenlines})
@@ -503,8 +553,13 @@ do
     do
       rand=$(($RANDOM%$divisor))
       case $rand in
-      0) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
-      1) printf "  " ;;
+      0) 
+        case $ending in 
+        fade) printf "  " ;; # Fade out
+        repopulate) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
+        *) echo "Invalid ending parameter"; exit ;;
+        esac ;;
+      1) printf "  " ;; # Maintain some blank space in the animation
       *) printf "\033[2C" ;; # move the cursor two spaces forward
       esac
     done

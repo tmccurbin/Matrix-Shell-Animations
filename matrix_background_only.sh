@@ -10,7 +10,7 @@
 # Last modified date: September 21, 2017
 
 # ANIMATION PARAMETER DESCRIPTIONS
-# symbols: type of characters to appear on screen: alphanumeric, hexadecimal, katakana, emoji
+# symbols: type of characters to appear: alphanumeric, numeric, hexadecimal, katakana, emoji
 # frequency: non-linear chance that a randomly-selected character is replaced; must be an integer between 1 and 100; 1=>1%, 51=>2%, 68=>3%, 76=>4%, 81=>5%, 91=>10%, 96=>20%, 97=>25%, 98=>33.33%, 99=>50%, 100=>100%
 # scroll_speed: enter 0 for static; greater positive integers increase scroll speed
 # font_color: choose black, red, green, yellow, blue, magenta, cyan, light_gray, dark_gray, light_red, light_green, light_yellow, light_blue, light_magenta, light_cyan, or white
@@ -163,8 +163,10 @@ screencols=$(expr `tput cols` / 2 - 1)
 case $symbols in 
 alphanumeric)
   chars=(a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9 ^) ;;
+numeric) 
+  chars=(0 1 2 3 4 5 6 7 8 9) ;;
 hexadecimal)
-  chars=(0 1 2 3 4 5 6 7 8 9 a b c d e f) ;;
+  chars=(0 1 2 3 4 5 6 7 8 9 A B C D E F) ;;
 katakana)
   chars=(ｱ ｲ ｳ ｴ ｵ ｶ ｷ ｸ ｹ ｺ ｻ ｼ ｽ ｾ ｿ ﾀ ﾁ ﾂ ﾃ ﾄ ﾅ ﾆ ﾇ ﾈ ﾉ ﾊ ﾋ ﾌ ﾍ ﾎ ﾏ ﾐ ﾑ ﾒ ﾓ ﾔ ﾕ ﾖ ﾗ ﾘ ﾙ ﾚ ﾛ ﾜ ヰ ヱ ヲ ﾝ) ;;
 emoji)
@@ -205,7 +207,7 @@ do
       rand=$(($RANDOM%$divisor))
       case $rand in
       0) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
-      1) printf "  " ;;
+      1) printf "  " ;; # Maintain some blank space in the animation
       *) printf "\033[2C" ;; # move the cursor two spaces forward
       esac
     done

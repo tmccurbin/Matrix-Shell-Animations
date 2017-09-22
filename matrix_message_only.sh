@@ -27,8 +27,9 @@
 
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation
-text_entry=("forward" "reverse" "random")
-text_deletion=("forward" "overwrite" "random")
+# Default = "forward" "reverse" "random" | "forward" "overwrite" "random"
+text_entry=("outside_in" "reverse" "forward")
+text_deletion=("instant" "instant" "instant")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
@@ -109,6 +110,39 @@ do
     done
     ;; # reverse case
     
+  outside_in)
+    # Make the cursor invisible
+    tput civis
+    
+    for (( i=0; i<line_length; i++ ))
+    do
+      if [ `expr $i % 2` -eq 0 ] # even iterations
+      then
+        # Calculate index to enter
+        text_index=`expr $i / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep `echo 0.97 \* $char_pause | bc`
+        echo "${line:$text_index:1}\c"
+      else # odd iterations
+        # Calculate index to enter
+        text_index=`expr $line_length - \( $i + 1 \) / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep `echo 0.97 \* $char_pause | bc`
+        echo "${line:$text_index:1}\c"
+      fi
+    done
+    
+    # Position cursor
+    tput cup $middle_line $end_position
+    
+    ;; # outside-in case
+    
   random)
     # Create an array for positions
     # Randomly select from the positions array, since characters may be repeated
@@ -175,6 +209,11 @@ do
   esac # text entry
   
   sleep $after_entry_pause # Rest between text entry and deletion
+  
+  if [ ${text_entry[line_index]} = "outside_in" ]
+  then
+    tput cnorm # make the cursor visible
+  fi
     
   case ${text_deletion[$line_index]} in 
   
@@ -189,7 +228,7 @@ do
     ;;
     
   reverse)
-    # Adjust cursor
+    # Place the cursor at the end of the line
     tput cup $middle_line $end_position
     
     # Delete the text from right to left
@@ -209,7 +248,6 @@ do
     for (( i=0; i<$line_length; i++ ))
     do
       position_array[$i]=$i
-      # echo "Position $i is ${position_array[$i]}"
     done
     
     # Randomly select from the position array
@@ -259,6 +297,10 @@ do
     ;;
     
   instant)
+  
+    # Place the cursor at the end of the line
+    tput cup $middle_line $end_position
+    
     # Delete the text from right to left
     for (( i=0; i<line_length; i++ ))
     do
