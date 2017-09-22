@@ -17,8 +17,8 @@
 # Navigate to this directory, in the terminal, and enter 'sh matrix_text_only.sh'
 
 # ANIMATION PARAMETER DESCRIPTIONS
-# text_entry: how your your text appears: forward, reverse, random, or instant; one entry per line of text
-# text_deletion: how your text vanishes: forward, reverse, random, instant, or overwrite;  one entry per line of text
+# text_entry: how your your text appears: forward, reverse, random, inside_out, outside_in, or instant; one entry per line of text
+# text_deletion: how your text vanishes: forward, reverse, random, inside_out, outside_in, instant, or overwrite;  one entry per line of text
 # char_pause: delay between characters appearing on the screen, in seconds
 # word_pause: delay between words appearing on the screen, in seconds
 # after_entry_pause: delay after full sentence entry, in seconds
@@ -28,8 +28,8 @@
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation
 # Default = "forward" "reverse" "random" | "forward" "overwrite" "random"
-text_entry=("outside_in" "reverse" "forward")
-text_deletion=("instant" "instant" "instant")
+text_entry=("outside_in" "forward" "outside_in")
+text_deletion=("outside_in" "outside_in" "forward")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
@@ -238,6 +238,39 @@ do
       sleep $char_pause
     done
     ;;
+    
+  outside_in)
+    # Make the cursor invisible
+    tput civis
+    
+    for (( i=0; i<line_length; i++ ))
+    do
+      if [ `expr $i % 2` -eq 0 ] # even iterations
+      then
+        # Calculate index to enter
+        text_index=`expr $i / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep $char_pause
+        echo " \c"
+      else # odd iterations
+        # Calculate index to enter
+        text_index=`expr $line_length - \( $i + 1 \) / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep $char_pause
+        echo " \c"
+      fi
+    done
+    
+    # Position cursor
+    tput cup $middle_line $end_position
+    
+    ;; # outside-in case
   
   random)
     # Delete the text in random order
@@ -316,6 +349,11 @@ do
   esac # text deletion
   
   sleep $after_deletion_pause
+  
+  if [ ${text_deletion[line_index]} = "outside_in" ]
+  then
+    tput cnorm # make the cursor visible
+  fi
   
   line_index=`expr $line_index + 1`
   

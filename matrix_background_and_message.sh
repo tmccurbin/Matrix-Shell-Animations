@@ -329,7 +329,7 @@ do
         # Position cursor
         tput cup $middle_line `expr $home_position + $text_index`
 
-        sleep `echo 0.97 \* $char_pause | bc`
+        sleep $char_pause
         echo "${line:$text_index:1}\c"
       else # odd iterations
         # Calculate index to enter
@@ -338,7 +338,7 @@ do
         # Position cursor
         tput cup $middle_line `expr $home_position + $text_index`
 
-        sleep `echo 0.97 \* $char_pause | bc`
+        sleep $char_pause
         echo "${line:$text_index:1}\c"
       fi
     done
@@ -444,6 +444,39 @@ do
     done
     ;;
   
+  outside_in)
+    # Make the cursor invisible
+    tput civis
+    
+    for (( i=0; i<line_length; i++ ))
+    do
+      if [ `expr $i % 2` -eq 0 ] # even iterations
+      then
+        # Calculate index to enter
+        text_index=`expr $i / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep $char_pause
+        echo " \c"
+      else # odd iterations
+        # Calculate index to enter
+        text_index=`expr $line_length - \( $i + 1 \) / 2`
+
+        # Position cursor
+        tput cup $middle_line `expr $home_position + $text_index`
+
+        sleep $char_pause
+        echo " \c"
+      fi
+    done
+    
+    # Position cursor
+    tput cup $middle_line $end_position
+    
+    ;; # outside-in case
+  
   random)
     # Delete the text in random order
     # Create an array for positions
@@ -522,6 +555,11 @@ do
   esac # text deletion
   
   sleep $after_deletion_pause
+  
+  if [ ${text_deletion[line_index]} = "outside_in" ]
+  then
+    tput cnorm # make the cursor visible
+  fi
   
   line_index=`expr $line_index + 1`
   
