@@ -17,8 +17,8 @@
 # Navigate to this directory, in the terminal, and enter 'sh matrix_text_only.sh'
 
 # ANIMATION PARAMETER DESCRIPTIONS
-# text_entry: how your your text appears: forward, reverse, random, or instant
-# text_deletion: how your text vanishes: forward, reverse, random, instant, or overwrite
+# text_entry: how your your text appears: forward, reverse, random, or instant; one entry per line of text
+# text_deletion: how your text vanishes: forward, reverse, random, instant, or overwrite;  one entry per line of text
 # char_pause: delay between characters appearing on the screen, in seconds
 # word_pause: delay between words appearing on the screen, in seconds
 # after_entry_pause: delay after full sentence entry, in seconds
@@ -27,8 +27,8 @@
 
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation
-text_entry="forward"
-text_deletion="forward"
+text_entry=("forward" "reverse" "random")
+text_deletion=("reverse" "overwrite" "instant")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
@@ -53,11 +53,12 @@ clear
 # Read lines from text
 terminal=`tty`
 exec < lines.txt
+line_index=0
 
 # The second condition accounts for files without new lines
 while read line || [ -n "$line" ]
 do
-
+  
   # Compute line length. 
   # Subtract 1 for the new line char
   line_length=`echo $line | wc -c`
@@ -67,7 +68,7 @@ do
   home_position=`expr $center_column - $line_length / 2`
   end_position=`expr $home_position + $line_length`
 
-  case $text_entry in
+  case ${text_entry[$line_index]} in
   
   forward)    
     # Keep track of words for adding spaces
@@ -175,7 +176,7 @@ do
   
   sleep $after_entry_pause # Rest between text entry and deletion
     
-  case $text_deletion in 
+  case ${text_deletion[$line_index]} in 
   
   forward)
     # Delete text from left to right
@@ -251,7 +252,9 @@ do
     ;;
   
   overwrite)
-    # Overwrite the previous line of text
+    # Overwrite the previous line of text.
+    # Be sure to increment line_number before leaving the loop
+    line_index=`expr $line_index + 1`
     continue
     ;;
     
@@ -271,6 +274,8 @@ do
   esac # text deletion
   
   sleep $after_deletion_pause
+  
+  line_index=`expr $line_index + 1`
   
 done # while read line
 
