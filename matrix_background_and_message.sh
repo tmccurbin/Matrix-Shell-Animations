@@ -230,13 +230,13 @@ tput cnorm
 # Change font
 echo "\033[30m"
 
-text_entry="random"
-text_deletion="overwrite"
+text_entry=("forward" "reverse" "random")
+text_deletion=("forward" "reverse" "overwrite")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
 after_deletion_pause=1
-final_pause=0
+final_pause=3
 
 # Terminal window parameters
 rows=`tput lines`
@@ -244,14 +244,22 @@ columns=`tput cols`
 middle_line=`expr $rows / 2`
 center_column=`expr $columns / 2`
 
+# Help message
+if [[ $1 =~ '-h' ]]; then
+	echo "Animate a message in the terminal"
+	echo "Example:	sh matrix_background_only.sh"
+	exit 0
+fi
+
 # Read lines from text
 terminal=`tty`
 exec < lines.txt
+line_index=0
 
 # The second condition accounts for files without new lines
 while read line || [ -n "$line" ]
 do
-
+  
   # Compute line length. 
   # Subtract 1 for the new line char
   line_length=`echo $line | wc -c`
@@ -261,7 +269,7 @@ do
   home_position=`expr $center_column - $line_length / 2`
   end_position=`expr $home_position + $line_length`
 
-  case $text_entry in
+  case ${text_entry[$line_index]} in
   
   forward)    
     # Keep track of words for adding spaces
@@ -369,7 +377,7 @@ do
   
   sleep $after_entry_pause # Rest between text entry and deletion
     
-  case $text_deletion in 
+  case ${text_deletion[$line_index]} in 
   
   forward)
     # Delete text from left to right
@@ -445,7 +453,9 @@ do
     ;;
   
   overwrite)
-    # Overwrite the previous line of text
+    # Overwrite the previous line of text.
+    # Be sure to increment line_number before leaving the loop
+    line_index=`expr $line_index + 1`
     continue
     ;;
     
@@ -465,6 +475,8 @@ do
   esac # text deletion
   
   sleep $after_deletion_pause
+  
+  line_index=`expr $line_index + 1`
   
 done # while read line
 
