@@ -1,4 +1,4 @@
-# Matrix Shell Animation: Text Only
+# Matrix Shell Animation: Message Only
 # License: GNU General Public License, version 2 (GPLv2)
 #
 # This script allows users to animate plain text in the terminal window. It provides
@@ -39,7 +39,14 @@ final_pause=3
 rows=`tput lines`
 columns=`tput cols`
 middle_line=`expr $rows / 2`
-center_column=`expr $columns / 2` 
+center_column=`expr $columns / 2`
+
+# Help message
+if [[ $1 =~ '-h' ]]; then
+	echo "Animate a message in the terminal"
+	echo "Example:	sh matrix_background_only.sh"
+	exit 0
+fi
 
 clear
 
