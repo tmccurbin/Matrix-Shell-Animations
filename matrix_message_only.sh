@@ -28,7 +28,7 @@
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation
 text_entry=("forward" "reverse" "random")
-text_deletion=("reverse" "overwrite" "instant")
+text_deletion=("forward" "overwrite" "random")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
@@ -100,8 +100,8 @@ do
     ;; # forward case
   
   reverse)
-    # Position the cursor
-    tput cup $middle_line $end_position
+    # Position the cursor on the last character
+    tput cup $middle_line `expr $end_position - 1`
     for (( i=`expr $line_length - 1`; i>=0; i-- ));
     do
       sleep $char_pause

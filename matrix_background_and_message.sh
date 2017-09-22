@@ -231,12 +231,12 @@ tput cnorm
 echo "\033[30m"
 
 text_entry=("forward" "reverse" "random")
-text_deletion=("forward" "reverse" "overwrite")
+text_deletion=("reverse" "random" "overwrite")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
 after_deletion_pause=1
-final_pause=3
+final_pause=1
 
 # Terminal window parameters
 rows=`tput lines`
@@ -301,8 +301,8 @@ do
     ;; # forward case
   
   reverse)
-    # Position the cursor
-    tput cup $middle_line $end_position
+    # Position the cursor on the last character
+    tput cup $middle_line `expr $end_position - 1`
     for (( i=`expr $line_length - 1`; i>=0; i-- ));
     do
       sleep $char_pause
