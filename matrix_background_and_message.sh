@@ -348,6 +348,57 @@ do
     
     ;; # outside-in case
     
+    inside_out)
+      
+      # Hide the cursor
+      tput civis
+      
+      # Check if line length is even or odd
+      if [ `expr $line_length % 2` -eq 0 ]
+      then
+        for (( i=0; i<$line_length; i++))
+        do
+        
+          # Check if index is even or odd
+          if [ `expr $i % 2` -eq 0 ]
+          then
+            text_index=`expr $line_length / 2 - \( $i + 2 \) / 2`
+          else
+            text_index=`expr $line_length / 2 + $i / 2`
+          fi
+          
+          #Position the cursor. Enter the character
+          tput cup $middle_line `expr $home_position + $text_index`
+          sleep $char_pause
+          echo "${line:$text_index:1}\c"
+          
+        done
+      else
+        for (( i=0; i<$line_length; i++))
+        do
+          # Check if index is even or odd
+          if [ `expr $i % 2` -eq 0 ]
+          then
+            text_index=`expr $line_length / 2 - $i / 2`
+          else
+            text_index=`expr $line_length / 2 + \( $i + 1 \) / 2`
+          fi
+          
+          #Position the cursor. Enter the character
+          tput cup $middle_line `expr $home_position + $text_index`
+          sleep $char_pause
+          echo "${line:$text_index:1}\c"
+          
+          
+          
+        done
+      fi
+      
+      # Position cursor
+      tput cup $middle_line $end_position
+    
+    ;; # inside_out case
+    
     random)
     # Create an array for positions
     # Randomly select from the positions array, since characters may be repeated
@@ -402,6 +453,7 @@ do
     ;; # random case
   
   instant)
+    tput civis
     tput cup $middle_line $home_position
     echo "$line\c"
     ;;
@@ -415,7 +467,7 @@ do
   
   sleep $after_entry_pause # Rest between text entry and deletion
   
-  if [ ${text_entry[line_index]} = "outside_in" ]
+  if [ ${text_entry[line_index]} = "instant" -o ${text_entry[line_index]} = "outside_in" -o ${text_entry[line_index]} = "inside_out" ]
   then
     tput cnorm # make the cursor visible
   fi
@@ -476,6 +528,57 @@ do
     tput cup $middle_line $end_position
     
     ;; # outside-in case
+    
+  inside_out)
+      
+      # Hide the cursor
+      tput civis
+      
+      # Check if line length is even or odd
+      if [ `expr $line_length % 2` -eq 0 ]
+      then
+        for (( i=0; i<$line_length; i++))
+        do
+        
+          # Check if index is even or odd
+          if [ `expr $i % 2` -eq 0 ]
+          then
+            text_index=`expr $line_length / 2 - \( $i + 2 \) / 2`
+          else
+            text_index=`expr $line_length / 2 + $i / 2`
+          fi
+          
+          #Position the cursor. Enter the character
+          tput cup $middle_line `expr $home_position + $text_index`
+          sleep $char_pause
+          echo " \c"
+          
+        done
+      else
+        for (( i=0; i<$line_length; i++))
+        do
+          # Check if index is even or odd
+          if [ `expr $i % 2` -eq 0 ]
+          then
+            text_index=`expr $line_length / 2 - $i / 2`
+          else
+            text_index=`expr $line_length / 2 + \( $i + 1 \) / 2`
+          fi
+          
+          #Position the cursor. Enter the character
+          tput cup $middle_line `expr $home_position + $text_index`
+          sleep $char_pause
+          echo " \c"
+          
+          
+          
+        done
+      fi
+      
+      # Position cursor
+      tput cup $middle_line $end_position
+    
+    ;; # inside_out case
   
   random)
     # Delete the text in random order
@@ -536,7 +639,9 @@ do
     ;;
     
   instant)
-  
+    
+    tput civis
+    
     # Place the cursor at the end of the line
     tput cup $middle_line $end_position
     
@@ -556,7 +661,7 @@ do
   
   sleep $after_deletion_pause
   
-  if [ ${text_deletion[line_index]} = "outside_in" ]
+  if [ ${text_deletion[line_index]} = "instant" -o ${text_deletion[line_index]} = "outside_in" -o ${text_deletion[line_index]} = "inside_out" ]
   then
     tput cnorm # make the cursor visible
   fi
