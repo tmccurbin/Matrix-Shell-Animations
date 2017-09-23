@@ -1,9 +1,9 @@
 # Matrix Shell Animation: Message Only
 # License: GNU General Public License, version 2 (GPLv2)
-#
+
 # This script allows users to animate plain text in the terminal window. It provides
 # four styles of text entry and five styles of text deletion (20 total permutations).
-#
+
 # Author: Tyrell McCurbin
 # Date created: September 19, 2017
 # Host: https://github.com/tmccurbin
@@ -363,10 +363,8 @@ do
           #Position the cursor. Enter the character
           tput cup $middle_line `expr $home_position + $text_index`
           sleep $char_pause
-          echo " \c"
-          
-          
-          
+          echo " \c"  
+        
         done
       fi
       
@@ -431,7 +429,7 @@ do
     line_index=`expr $line_index + 1`
     continue
     ;;
-    
+  
   instant)
     
     tput civis
