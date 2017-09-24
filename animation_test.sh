@@ -11,7 +11,7 @@
 
 # ANIMATION PARAMETER DESCRIPTIONS
 # symbols: type of characters to appear: alphanumeric, numeric, hexadecimal, katakana, emoji
-# frequency: non-linear chance that a randomly-selected character is replaced; must be an integer between 1 and 100; 1=>1%, 51=>2%, 68=>3%, 76=>4%, 81=>5%, 91=>10%, 96=>20%, 97=>25%, 98=>33.33%, 99=>50%, 100=>100%
+# frequency: non-linear chance that a randomly-selected character is replaced; must be an integer between 1 and 199; 1=>1%, 101=>2%, 151=>4%, 161=>5%, 181=>10%, 191=>20%, 193=>25%, 195=>33.33%, 197=>50%, 199=>100%
 # scroll_speed: enter 0 for static; greater positive integers increase scroll speed
 # font_color: choose black, red, green, yellow, blue, magenta, cyan, light_gray, dark_gray, light_red, light_green, light_yellow, light_blue, light_magenta, light_cyan, or white
 # is_bold: make the font bold: "true" or "false"
@@ -157,7 +157,7 @@ colors=($font_1 $font_2)
 
 # Terminal window parameters
 screenlines=$(expr `tput lines` - 1 + $scroll_speed)
-screencols=$(expr `tput cols` / 2 - 1)
+screencols=$(expr `tput cols` / 2)
 # Terminal window parameters
 rows=`tput lines`
 columns=`tput cols`
@@ -180,12 +180,12 @@ emoji)
   echo "Invalid input for symbols"; exit ;;
 esac
 
-# Measure array sizes for RANDOM modulus
+# Measure array sizes for RANDOM selection of color and characters
 count=${#chars[@]}
 color_count=${#colors[@]}
 
 # Compute the divisor for the random modulus
-divisor=`expr 101 - $frequency`
+probability_divisor=`expr 201 - $frequency`
 
 # The commands in quotes are run on signals interrupt (Ctrl + C), and stop (Ctrl + Z), and on errors producing a signal token of 0, 1, 9, and 15
 trap "tput sgr0; tput cnorm; clear; exit" SIGTERM SIGINT SIGTSTP 0 1 9 15
@@ -250,28 +250,36 @@ do
     
     # Reset the cursor so the matrix animation doesn't run off screen
     tput cup 0 0
-    
+
     # Reset flag
     if [ $text_index -eq `expr $line_length - 1` ]
     then
       print_flag=0
     fi
-    
   fi
   
-  for i in $(eval echo {1..$screenlines})
-  do
-    for i in $(eval echo {1..$screencols})
+  # Pause the animation if scroll is on and the print flag is raised
+  if  [ $scroll_speed -eq 0 ] || ( [ $scroll_speed -gt 0 ] && [ $print_flag -ne 1 ] ) 
+  then
+    for i in $(eval echo {1..$screenlines})
     do
-      rand=$(($RANDOM%$divisor))
-      case $rand in
-      0) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
-      1) printf "  " ;; # Maintain some blank space in the animation
-      *) printf "\033[2C" ;; # move the cursor two spaces forward
-      esac
+      # Avoid overwriting the text while printing
+      if [ $print_flag -ne 1 ] && [ $i -ne $middle_line ]  # I COULD ADD THIS CONDITION TO BE MORE PRECISE: $i -ne $middle_line
+      then
+        for j in $(eval echo {1..$screencols})
+        do
+          rand=$(($RANDOM%$probability_divisor))
+          case $rand in
+          0) printf "${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]} " ;;
+          1) printf " ${colors[$RANDOM%$color_count]}${chars[$RANDOM%$count]}" ;;
+          2-3) printf "  " ;; # Maintain some blank space in the animation
+          *) printf "\033[2C" ;; # move the cursor two spaces forward
+          esac
+        done
+      fi
+      printf "\n"
     done
-    printf "\n"
-  done
+  fi
   animation_count=`expr $animation_count + 1`
   tput cup 0 0
 done

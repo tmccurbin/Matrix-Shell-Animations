@@ -2,9 +2,9 @@
 
 This set of files includes bash shell scripts which allow users to generate and modify matrix-like animations.
 
-Inspiration for the script comes from another matrix script, by Circuit Static, however all code presented in these scripts is my own.
+Inspiration for the script comes from another matrix script, by Brett Terpstra, however all code presented in these scripts is my own.
 
-The scripts should work in MacOS, and likely Linux.
+The scripts should work in MacOS.
 
 To run the scripts, open the terminal and navigate to this directory.
 
