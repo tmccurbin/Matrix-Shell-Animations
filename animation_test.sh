@@ -264,7 +264,7 @@ do
     for i in $(eval echo {0..`expr $screenlines - 1`})
     do
       # Avoid overwriting the text while printing
-      if [ $print_flag -ne 1 ] && [ $i -ne $middle_line ]  # I COULD ADD THIS CONDITION TO BE MORE PRECISE: $i -ne $middle_line
+      if [ $print_flag -eq 0 ] || ( [ $print_flag -eq 1 ] && [ $i -ne $middle_line ] )
       then
         for j in $(eval echo {1..$screencols})
         do
