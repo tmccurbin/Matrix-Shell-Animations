@@ -161,7 +161,7 @@ screencols=$(expr `tput cols` / 2)
 # Terminal window parameters
 rows=`tput lines`
 columns=`tput cols`
-middle_line=`expr $rows / 2`
+middle_line=`expr $rows / 2 - 1`
 center_column=`expr $columns / 2`
 
 # Characters
@@ -261,7 +261,7 @@ do
   # Pause the animation if scroll is on and the print flag is raised
   if  [ $scroll_speed -eq 0 ] || ( [ $scroll_speed -gt 0 ] && [ $print_flag -ne 1 ] ) 
   then
-    for i in $(eval echo {1..$screenlines})
+    for i in $(eval echo {0..`expr $screenlines - 1`})
     do
       # Avoid overwriting the text while printing
       if [ $print_flag -ne 1 ] && [ $i -ne $middle_line ]  # I COULD ADD THIS CONDITION TO BE MORE PRECISE: $i -ne $middle_line
