@@ -349,6 +349,9 @@ do
           printf " "
         done
         ;;
+      overwrite)
+        # Do nothing here
+        ;;
       esac
       # Allow the text to be overwritten
       print_flag=0
