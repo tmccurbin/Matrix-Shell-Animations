@@ -71,7 +71,7 @@ do
 
   case ${text_entry[$line_index]} in
   
-  forward)    
+  forward)
     # Keep track of words for adding spaces
     word_count=`echo $line | wc -w`
     current_word=1
