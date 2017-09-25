@@ -23,7 +23,7 @@
 # more info available at: https://misc.flogisoft.com/bash/tip_colors_and_formatting
 
 # TODO:
-# Implement text deletion
+# Work on timing (by trial and error, or algorithmically)
 
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation. See descriptions above.
@@ -32,8 +32,9 @@ symbols="hexadecimal"
 frequency=1
 scroll_speed=0
 line_entry_pause=10
+line_deletion_pause=5
 text_entry=("random" "instant" "forward")
-text_deletion=("instant" "instant" "instant")
+text_deletion=("instant" "instant" "overwrite")
 # Font 1
 font_color_1="light_gray"
 background_color_1="default"
@@ -215,10 +216,12 @@ exec < lines.txt
 # Bookkeeping
 line_index=0
 line_entry_counter=0
+line_deletion_counter=0
 animation_count=0
 read_line_flag=0
 print_flag=0
 delete_flag=0
+deletion_pause_flag=0
 
 
 while true
@@ -348,15 +351,35 @@ do
         do
           printf " "
         done
+        deletion_pause_flag=1
         ;;
       overwrite)
         # Do nothing here
+        deletion_pause_flag=1
+        ;;
+      *)
+        echo "Invalid entry for text deletion"
+        exit
         ;;
       esac
-      # Allow the text to be overwritten
-      print_flag=0
-      delete_flag=0
-      line_index=`expr $line_index + 1`
+      
+    fi
+    
+    if [ $deletion_pause_flag -eq 1 ]
+    then
+    
+      if [ $line_deletion_counter -eq $line_deletion_pause ]
+      then
+        # Allow the text to be overwritten
+        print_flag=0
+        delete_flag=0
+        line_deletion_counter=0
+        line_index=`expr $line_index + 1`
+        deletion_pause_flag=0
+      else
+        line_deletion_counter=`expr $line_deletion_counter + 1`
+      fi
+      
     fi
     
   fi # end of printing and deleting
