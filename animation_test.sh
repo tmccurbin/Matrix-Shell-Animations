@@ -33,7 +33,7 @@ frequency=1
 scroll_speed=0
 line_entry_pause=10
 text_entry=("random" "instant" "forward")
-text_deletion=("inside_out" "inside_out" "inside_out")
+text_deletion=("instant" "instant" "instant")
 # Font 1
 font_color_1="light_gray"
 background_color_1="default"
@@ -338,6 +338,18 @@ do
     
     if [ $delete_flag -eq 1 ]
     then
+    
+      case ${text_deletion[$line_index]} in
+      
+      instant)
+        # Place cursor at the beginning of the line
+        tput cup $middle_line $home_position
+        for ((i=0;i<line_length;i++))
+        do
+          printf " "
+        done
+        ;;
+      esac
       # Allow the text to be overwritten
       print_flag=0
       delete_flag=0
