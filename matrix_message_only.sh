@@ -28,8 +28,8 @@
 # ANIMATION PARAMETERS
 # Change these parameters to customize your animation
 # Default = "forward" "reverse" "random" | "forward" "overwrite" "random"
-text_entry=("inside_out" "forward" "inside_out")
-text_deletion=("inside_out" "inside_out" "inside_out")
+text_entry=("outside_in" "random" "forward")
+text_deletion=("instant" "instant" "forward")
 char_pause=0.1
 word_pause=0.18
 after_entry_pause=2
@@ -319,9 +319,6 @@ do
       fi
     done
     
-    # Position cursor
-    tput cup $middle_line $end_position
-    
     ;; # outside-in case
     
     inside_out)
@@ -360,8 +357,6 @@ do
             text_index=`expr $line_length / 2 + \( $i + 1 \) / 2`
           fi
           
-          #Position the cursor. Enter the character
-          tput cup $middle_line `expr $home_position + $text_index`
           sleep $char_pause
           echo " \c"  
         
@@ -433,9 +428,6 @@ do
   instant)
     
     tput civis
-    
-    # Place the cursor at the end of the line
-    tput cup $middle_line $end_position
     
     # Delete the text from right to left
     for (( i=0; i<line_length; i++ ))
