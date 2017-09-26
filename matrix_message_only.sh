@@ -18,7 +18,7 @@
 
 # ANIMATION PARAMETER DESCRIPTIONS
 # text_entry: how your your text appears: forward, reverse, random, inside_out, outside_in, or instant; one entry per line of text
-# text_deletion: how your text vanishes: forward, reverse, random, inside_out, outside_in, instant, or overwrite;  one entry per line of text
+# text_deletion: how your text vanishes: forward, reverse, quick_reverse, random, inside_out, outside_in, instant, or overwrite;  one entry per line of text
 # char_pause: delay between characters appearing on the screen, in seconds
 # word_pause: delay between words appearing on the screen, in seconds
 # after_entry_pause: delay after full sentence entry, in seconds
@@ -29,9 +29,9 @@
 # Change these parameters to customize your animation
 # Default = "forward" "reverse" "random" | "forward" "overwrite" "random"
 text_entry=("outside_in" "random" "forward")
-text_deletion=("instant" "instant" "forward")
+text_deletion=("quick_reverse" "quick_reverse" "overwrite")
 char_pause=0.1
-word_pause=0.18
+word_pause=0.15
 after_entry_pause=2
 after_deletion_pause=1
 final_pause=3
@@ -72,6 +72,9 @@ do
   case ${text_entry[$line_index]} in
   
   forward)
+  
+    tput cnorm
+  
     # Keep track of words for adding spaces
     word_count=`echo $line | wc -w`
     current_word=1
@@ -101,6 +104,9 @@ do
     ;; # forward case
   
   reverse)
+
+    tput cnorm
+
     # Position the cursor on the last character
     tput cup $middle_line `expr $end_position - 1`
     for (( i=`expr $line_length - 1`; i>=0; i-- ));
@@ -195,16 +201,16 @@ do
     ;; # inside_out case
     
   random)
+  
+    tput cnorm
+  
     # Create an array for positions
-    # Randomly select from the positions array, since characters may be repeated
-    
-    # Populate the positions array
     for (( i=0; i<$line_length; i++ ))
     do
       position_array[$i]=$i
     done
     
-    # Randomly select from the position array
+    # Randomly select from the position array, since characters may be repeated
     for (( i=0; i<$line_length; i++ ))
     do
     
@@ -262,14 +268,17 @@ do
   
   sleep $after_entry_pause # Rest between text entry and deletion
   
-  if [ ${text_entry[line_index]} = "instant" -o ${text_entry[line_index]} = "outside_in" -o ${text_entry[line_index]} = "inside_out" ]
-  then
-    tput cnorm # make the cursor visible
-  fi
+  #if [ ${text_entry[line_index]} = "instant" -o ${text_entry[line_index]} = "outside_in" -o #${text_entry[line_index]} = "inside_out" ]
+  #then
+  #  tput cnorm # make the cursor visible
+  #fi
   
   case ${text_deletion[$line_index]} in 
   
   forward)
+    
+    tput cnorm
+  
     # Delete text from left to right
     tput cup $middle_line $home_position
     for (( i=0; i<line_length; i++ ))
@@ -280,6 +289,9 @@ do
     ;;
     
   reverse)
+  
+    tput cnorm
+  
     # Place the cursor at the end of the line
     tput cup $middle_line $end_position
     
@@ -369,17 +381,16 @@ do
     ;; # inside_out case
   
   random)
-    # Delete the text in random order
-    # Create an array for positions
-    # Randomly select from the positions array, since characters can repeat themselves
     
-    # Populate the positions array
+    tput cnorm
+    
+    # Create an array for positions
     for (( i=0; i<$line_length; i++ ))
     do
       position_array[$i]=$i
     done
     
-    # Randomly select from the position array
+    # Randomly select from the position array, since characters can repeat themselves
     for (( i=0; i<$line_length; i++ ))
     do
     
@@ -434,6 +445,19 @@ do
     do
       echo "\b \b\c"
     done
+    ;;
+  
+  quick_reverse)
+    
+    tput civis
+    
+    # Delete the text from right to left
+    for (( i=0; i<line_length; i++ ))
+    do
+      echo "\b \b\c"
+      sleep 0.025
+    done
+    
     ;;
     
   *)
