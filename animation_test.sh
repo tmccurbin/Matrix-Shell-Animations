@@ -31,9 +31,9 @@
 symbols="hexadecimal"
 frequency=1
 scroll_speed=0
-line_entry_pause=10
+line_entry_pause=20
 line_deletion_pause=5
-text_entry=("random" "instant" "forward")
+text_entry=("instant" "random" "forward")
 text_deletion=("instant" "instant" "overwrite")
 # Font 1
 font_color_1="light_gray"
@@ -227,7 +227,7 @@ deletion_pause_flag=0
 while true
 do
 
-  if [ $animation_count -eq 35 -o $animation_count -eq 75 -o $animation_count -eq 110 ]
+  if [ $animation_count -eq 35 -o $animation_count -eq 90 -o $animation_count -eq 160 ]
   then
     read_line_flag=1
   fi
