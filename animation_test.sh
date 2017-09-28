@@ -33,8 +33,8 @@ frequency=1
 scroll_speed=0
 line_entry_pause=20
 line_deletion_pause=5
-text_entry=("instant" "random" "forward")
-text_deletion=("reverse" "reverse" "reverse")
+text_entry=("outside_in" "random" "forward")
+text_deletion=("reverse" "reverse" "hold")
 # Font 1: (light gray for light background)
 font_color_1="dark_gray"
 background_color_1="default"
@@ -287,6 +287,7 @@ do
 
           printf "\033[0m${line:$placeholder:1}"
         fi
+        text_index=`expr $text_index + 1`
         ;;
       random)
         # Create an array for positions
