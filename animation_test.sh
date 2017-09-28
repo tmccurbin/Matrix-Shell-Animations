@@ -375,7 +375,7 @@ do
         deletion_pause_flag=1
         ;;
       reverse)
-        if [ $delete_index -lt $line_length ]
+        if [ $delete_index -lt $line_length -a $deletion_pause_flag -ne 1 ]
         then
           tput cup $middle_line `expr $end_position - $delete_index - 1`
           printf " " # Erase char
