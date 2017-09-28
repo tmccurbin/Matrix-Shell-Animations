@@ -35,6 +35,7 @@ word_pause=0.15
 after_entry_pause=2
 after_deletion_pause=1
 final_pause=3
+recording_buffer=1
 
 # Terminal window parameters
 rows=`tput lines`
@@ -55,6 +56,9 @@ clear
 terminal=`tty`
 exec < lines.txt
 line_index=0
+
+tput civis
+sleep $recording_buffer
 
 # The second condition accounts for files without new lines
 while read line || [ -n "$line" ]

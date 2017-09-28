@@ -231,7 +231,7 @@ sleep $recording_buffer
 while true
 do
 
-  if [ $animation_count -eq 35 -o $animation_count -eq 90 -o $animation_count -eq 190 ]
+  if [ $animation_count -eq 35 -o $animation_count -eq 115 -o $animation_count -eq 215 ]
   then
     read_line_flag=1
   fi
