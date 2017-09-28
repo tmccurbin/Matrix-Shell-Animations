@@ -34,9 +34,9 @@ scroll_speed=0
 line_entry_pause=20
 line_deletion_pause=5
 text_entry=("instant" "random" "forward")
-text_deletion=("instant" "instant" "overwrite")
-# Font 1
-font_color_1="light_gray"
+text_deletion=("reverse" "reverse" "reverse")
+# Font 1: (light gray for light background)
+font_color_1="dark_gray"
 background_color_1="default"
 is_bold_1="false"
 is_dim_1="false"
@@ -44,8 +44,8 @@ is_underlined_1="false"
 is_flashing_1="false"
 is_inverted_1="false"
 is_hidden_1="false"
-# Font 2
-font_color_2="light_gray"
+# Font 2: (light gray for light background)
+font_color_2="dark_gray"
 background_color_2="default"
 is_bold_2="true"
 is_dim_2="false"
@@ -222,12 +222,13 @@ read_line_flag=0
 print_flag=0
 delete_flag=0
 deletion_pause_flag=0
-
+delete_index=0
+placeholder=0
 
 while true
 do
 
-  if [ $animation_count -eq 35 -o $animation_count -eq 90 -o $animation_count -eq 160 ]
+  if [ $animation_count -eq 35 -o $animation_count -eq 90 -o $animation_count -eq 190 ]
   then
     read_line_flag=1
   fi
@@ -259,13 +260,33 @@ do
   
       instant)
         tput cup $middle_line `expr $home_position + $text_index`
-        printf "\033[30m$line\033[0m"
+        printf "\033[0m$line"
         text_index=$line_length
         ;;
       forward)
         tput cup $middle_line `expr $home_position + $text_index`
-        printf "\033[30m${line:$text_index:1}\033[0m" # Print char
+        printf "\033[0m${line:$text_index:1}" # Print char
         text_index=`expr $text_index + 1`
+        ;;
+      outside_in)
+        if [ `expr $text_index % 2` -eq 0 ] # even iterations
+        then
+          # Calculate index to enter
+          placeholder=`expr $text_index / 2`
+
+          # Position cursor
+          tput cup $middle_line `expr $home_position + $placeholder`
+
+          printf "\033[0m${line:$placeholder:1}"
+        else # odd iterations
+          # Calculate index to enter
+          placeholder=`expr $line_length - \( $text_index + 1 \) / 2`
+
+          # Position cursor
+          tput cup $middle_line `expr $home_position + $placeholder`
+
+          printf "\033[0m${line:$placeholder:1}"
+        fi
         ;;
       random)
         # Create an array for positions
@@ -303,7 +324,7 @@ do
           tput cup $middle_line $new_column
 
           # Print character
-          printf "\033[30m${line:$random_index:1}\033[0m"
+          printf "\033[0m${line:$random_index:1}"
 
           # Remove entry from position array
           unset position_array[random_index]
@@ -353,9 +374,23 @@ do
         done
         deletion_pause_flag=1
         ;;
+      reverse)
+        if [ $delete_index -lt $line_length ]
+        then
+          tput cup $middle_line `expr $end_position - $delete_index - 1`
+          printf " " # Erase char
+          delete_index=`expr $delete_index + 1`
+        else
+          delete_index=0
+          deletion_pause_flag=1
+        fi
+      ;;
       overwrite)
-        # Do nothing here
+        # Do nothing here. Allow the matrix to overwrite the text.
         deletion_pause_flag=1
+        ;;
+      hold)
+        # Do nothing. Don't allow orverwriting.
         ;;
       *)
         echo "Invalid entry for text deletion"
