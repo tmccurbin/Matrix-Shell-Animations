@@ -35,6 +35,7 @@ line_entry_pause=20
 line_deletion_pause=5
 text_entry=("outside_in" "random" "forward")
 text_deletion=("reverse" "reverse" "hold")
+recording_buffer=1
 # Font 1: (light gray for light background)
 font_color_1="dark_gray"
 background_color_1="default"
@@ -224,6 +225,8 @@ delete_flag=0
 deletion_pause_flag=0
 delete_index=0
 placeholder=0
+
+sleep $recording_buffer
 
 while true
 do
